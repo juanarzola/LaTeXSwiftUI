@@ -288,7 +288,7 @@ extension Renderer {
             continue
           }
           let imageSize = svg.size(for: xHeight)
-          guard let image = rasterizeSVG(data: svg.data, size: imageSize, scale: displayScale) else {
+          guard let image = rasterizeSVG(data: svg.data, size: imageSize, accessibilityLabel: svg.speechText, scale: displayScale) else {
             continue
           }
           images.append(image)
@@ -506,7 +506,7 @@ extension Renderer {
     // Rasterize the SVG using a thread-safe CGBitmapContext
     let imageSize = svg.size(for: xHeight)
     guard let image = Self.rasterizeSVG(
-      data: svg.data, size: imageSize, scale: displayScale
+      data: svg.data, size: imageSize, accessibilityLabel: svg.speechText, scale: displayScale
     ) else {
       return nil
     }
@@ -577,10 +577,11 @@ extension Renderer {
   /// - Parameters:
   ///   - data: The SVG data.
   ///   - size: The logical size of the image.
+  ///   - accessibilityLabel: The accessibility label of the image.
   ///   - scale: The display scale.
   /// - Returns: A platform image, or nil on failure.
   nonisolated private static func rasterizeSVG(
-    data: Data, size: CGSize, scale: CGFloat
+    data: Data, size: CGSize, accessibilityLabel: String?, scale: CGFloat
   ) -> _Image? {
     guard let svg = SwiftDraw.SVG(data: data) else { return nil }
     let pixelWidth = Int(ceil(size.width * scale))
@@ -606,9 +607,15 @@ extension Renderer {
     guard let cgImage = ctx.makeImage() else { return nil }
 
     #if os(iOS) || os(visionOS)
-    return UIImage(cgImage: cgImage, scale: scale, orientation: .up)
+    let image = UIImage(cgImage: cgImage, scale: scale, orientation: .up)
+    // this image is created here and not used in the UI yet, so this is safe
+    image.accessibilityLabel = accessibilityLabel
+    return image
     #else
-    return NSImage(cgImage: cgImage, size: size)
+    let image = NSImage(cgImage: cgImage, size: size)
+    // this image is created here and not used in the UI yet, so this is safe
+    image.accessibilityDescription = accessibilityLabel
+    return image
     #endif
   }
 
