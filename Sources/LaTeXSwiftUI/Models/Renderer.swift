@@ -493,7 +493,7 @@ extension Renderer {
     renderingMode: SwiftUI.Image.TemplateRenderingMode
   ) -> SwiftUI.Image? {
     // Create our cache key
-    let cacheKey = Cache.ImageCacheKey(svg: svg, xHeight: xHeight)
+    let cacheKey = Cache.ImageCacheKey(svg: svg, xHeight: xHeight, scale: displayScale)
 
     // Check the cache for an image
     if let image = Cache.shared.imageCacheValue(for: cacheKey) {
@@ -515,7 +515,7 @@ extension Renderer {
     Cache.shared.setImageCacheValue(image, for: cacheKey)
 
     // Finish up
-    return Image(image: image, scale: displayScale)
+    return Image(image: image)
       .renderingMode(renderingMode)
       .antialiased(true)
       .interpolation(.high)
@@ -608,13 +608,9 @@ extension Renderer {
 
     #if os(iOS) || os(visionOS)
     let image = UIImage(cgImage: cgImage, scale: scale, orientation: .up)
-    // this image is created here and not used in the UI yet, so this is safe
-    image.accessibilityLabel = accessibilityLabel
     return image
     #else
     let image = NSImage(cgImage: cgImage, size: size)
-    // this image is created here and not used in the UI yet, so this is safe
-    image.accessibilityDescription = accessibilityLabel
     return image
     #endif
   }
@@ -656,7 +652,7 @@ extension Renderer {
           return false
         }
         
-        let imageCacheKey = Cache.ImageCacheKey(svg: svg, xHeight: xHeight)
+        let imageCacheKey = Cache.ImageCacheKey(svg: svg, xHeight: xHeight, scale: displayScale)
         guard Cache.shared.imageCacheValue(for: imageCacheKey) != nil else {
           return false
         }
