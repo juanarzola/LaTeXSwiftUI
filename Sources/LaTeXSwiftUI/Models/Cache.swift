@@ -71,6 +71,7 @@ internal final class Cache: @unchecked Sendable {
     static let keyType: String = "image"
     let svg: SVG
     let xHeight: CGFloat
+    let scale: CGFloat
     internal var fallbackKey: String { String(data: svg.data, encoding: .utf8) ?? "" }
   }
   
