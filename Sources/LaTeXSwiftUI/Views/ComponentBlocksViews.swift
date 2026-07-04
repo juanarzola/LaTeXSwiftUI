@@ -88,7 +88,7 @@ internal struct ComponentBlocksViews: View {
             else {
               HorizontalImageScroller(
                 image: container.image,
-                height: container.size.size.height)
+                size: container.size.size)
             }
             
             EquationNumber(blockIndex: blocks.filter({ $0.isEquationBlock }).firstIndex(of: block) ?? 0, side: .right)

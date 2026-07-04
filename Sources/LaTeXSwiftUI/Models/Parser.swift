@@ -35,7 +35,7 @@ internal enum Parser {
   ///   - mode: The rendering mode.
   /// - Returns: An array of component blocks.
   static func parse(_ text: String, mode: LaTeX.ParsingMode) -> [ComponentBlock] {
-    let components = mode == .all ? [Component(text: text, type: .inlineEquation)] : parse(text)
+    let components = mode == .all ? allModeComponents(text) : parse(text)
     var blocks = [ComponentBlock]()
     var blockComponents = [Component]()
     for component in components {
@@ -55,6 +55,33 @@ internal enum Parser {
     return blocks
   }
   
+  /// Components for the `.all` parsing mode, where the entire input is the
+  /// equation.
+  ///
+  /// If the input is a single block-style equation (a named environment such
+  /// as `align` or `gather`, or a `$$ ... $$` block) surrounded by nothing
+  /// but whitespace, its parsed type is kept so that it lays out as a display
+  /// equation. Wrapping it as an inline equation instead would apply the
+  /// SVG's `vertical-align` as a text baseline offset, which breaks the line
+  /// layout of tall multi-line equations. Everything else is treated as one
+  /// inline equation.
+  ///
+  /// - Parameter text: The input text.
+  /// - Returns: An array of components.
+  private static func allModeComponents(_ text: String) -> [Component] {
+    let parsed = parse(text)
+    let equations = parsed.filter { $0.type.isEquation }
+    if let equation = equations.first, equations.count == 1, !equation.type.inline,
+      parsed.allSatisfy({
+        $0.type.isEquation
+          || $0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      })
+    {
+      return [equation]
+    }
+    return [Component(text: text, type: .inlineEquation)]
+  }
+
   /// Parses the input text in to components.
   ///
   /// - Parameter input: The input text.

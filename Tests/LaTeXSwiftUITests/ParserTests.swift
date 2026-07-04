@@ -551,4 +551,49 @@ final class ParserTests: XCTestCase {
     assertComponent(components, 1, "b", .namedEnvironment("gather"))
   }
 
+  // Named environments must keep their \begin/\end wrapper in the text
+  // sent to MathJax — the bare body fails conversion ("Misplaced &").
+  func testGenericEnvironmentRenderTextPreservesWrapper() {
+    let input = "\\begin{align}a &= b \\\\ c &= d\\end{align}"
+    let components = Parser.parse(input)
+    XCTAssertEqual(components.count, 1)
+    XCTAssertEqual(components[0].renderText, input)
+  }
+
+  // In `.all` parsing mode, an input that is entirely one block-style
+  // equation must keep its block type. Wrapping it as an inline equation
+  // applies the SVG's vertical-align as a baseline offset, which breaks the
+  // line layout of tall multi-line environments.
+  func testParseModeAll_SingleEnvironmentIsBlock() {
+    let input = """
+    \\begin{gather*}
+    \\text{123} \\\\
+    \\text{123} \\\\
+    \\end{gather*}
+    """
+    let blocks = Parser.parse(input, mode: .all)
+    XCTAssertEqual(blocks.count, 1)
+    XCTAssertTrue(blocks[0].isEquationBlock)
+    XCTAssertEqual(blocks[0].components.count, 1)
+    XCTAssertEqual(blocks[0].components[0].type, .namedEnvironment("gather*"))
+  }
+
+  func testParseModeAll_PlainTextIsInlineEquation() {
+    let input = "x + y"
+    let blocks = Parser.parse(input, mode: .all)
+    XCTAssertEqual(blocks.count, 1)
+    XCTAssertEqual(blocks[0].components.count, 1)
+    XCTAssertEqual(blocks[0].components[0].type, .inlineEquation)
+    XCTAssertEqual(blocks[0].components[0].text, input)
+  }
+
+  func testParseModeAll_EnvironmentWithTextIsInlineEquation() {
+    let input = "see \\begin{align}a &= b\\end{align}"
+    let blocks = Parser.parse(input, mode: .all)
+    XCTAssertEqual(blocks.count, 1)
+    XCTAssertEqual(blocks[0].components.count, 1)
+    XCTAssertEqual(blocks[0].components[0].type, .inlineEquation)
+    XCTAssertEqual(blocks[0].components[0].text, input)
+  }
+
 }

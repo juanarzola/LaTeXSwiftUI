@@ -158,6 +158,16 @@ internal struct Component: CustomStringConvertible, Equatable, Hashable, Sendabl
   var originalTextTrimmingNewlines: String {
     originalText.trimmingCharacters(in: .newlines)
   }
+
+  /// The text passed to MathJax for rendering.
+  var renderText: String {
+    switch type {
+    case .namedEnvironment:
+      return originalText
+    default:
+      return text
+    }
+  }
   
   /// The component's conversion options.
   var conversionOptions: ConversionOptions {

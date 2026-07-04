@@ -434,7 +434,7 @@ extension Renderer {
   ) throws -> SVG? {
     // Create our SVG cache key
     let svgCacheKey = Cache.SVGCacheKey(
-      componentText: component.text,
+      componentText: component.renderText,
       conversionOptions: component.conversionOptions,
       texOptions: texOptions)
 
@@ -451,7 +451,7 @@ extension Renderer {
     // Perform the TeX -> SVG conversion
     var conversionError: Error?
     let svgString = mathjax.tex2svg(
-      component.text,
+      component.renderText,
       styles: false,
       conversionOptions: component.conversionOptions,
       inputOptions: texOptions,
@@ -462,7 +462,7 @@ extension Renderer {
 
     // Generate speech text for accessibility via the Speech Rule Engine
     let speechText = try? mathjax.tex2speech(
-      component.text,
+      component.renderText,
       conversionOptions: component.conversionOptions,
       inputOptions: texOptions)
 
@@ -534,7 +534,7 @@ extension Renderer {
     texOptions: TeXInputProcessorOptions
   ) throws -> SVG? {
     let svgCacheKey = Cache.SVGCacheKey(
-      componentText: component.text,
+      componentText: component.renderText,
       conversionOptions: component.conversionOptions,
       texOptions: texOptions)
 
@@ -548,7 +548,7 @@ extension Renderer {
 
     var conversionError: Error?
     let svgString = mathjax.tex2svg(
-      component.text,
+      component.renderText,
       styles: false,
       conversionOptions: component.conversionOptions,
       inputOptions: texOptions,
@@ -562,7 +562,7 @@ extension Renderer {
     }
 
     let speechText = try? mathjax.tex2speech(
-      component.text,
+      component.renderText,
       conversionOptions: component.conversionOptions,
       inputOptions: texOptions)
 
@@ -641,7 +641,7 @@ extension Renderer {
     for block in blocks {
       for component in block.components where component.type.isEquation {
         let dataCacheKey = Cache.SVGCacheKey(
-          componentText: component.text,
+          componentText: component.renderText,
           conversionOptions: component.conversionOptions,
           texOptions: texOptions)
         guard let svgData = Cache.shared.dataCacheValue(for: dataCacheKey) else {

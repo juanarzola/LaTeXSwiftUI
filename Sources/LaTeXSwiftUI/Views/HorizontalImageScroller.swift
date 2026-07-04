@@ -31,9 +31,14 @@ internal struct HorizontalImageScroller: View {
   /// The image to display.
   let image: Image
   
-  /// The height of the image.
-  let height: CGFloat
-  
+  /// The size of the image.
+  ///
+  /// The width is used as the view's ideal width so that layout passes that
+  /// ask for the natural size (e.g. `fixedSize` or `ImageRenderer`
+  /// measurement) get the image's width instead of `GeometryReader`'s
+  /// degenerate default.
+  let size: CGSize
+
   /// Whether the scroll view should show its indicators.
   var showsIndicators: Bool = false
   
@@ -46,6 +51,7 @@ internal struct HorizontalImageScroller: View {
           .frame(minWidth: geometry.size.width)
       }
     }
-    .frame(height: height)
+    .frame(idealWidth: size.width)
+    .frame(height: size.height)
   }
 }

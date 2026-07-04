@@ -62,4 +62,76 @@ final class GeometryTests: XCTestCase {
     XCTAssertEqual(geometry.frame.rect, CGRect(x: 0, y: -1342, width: 940, height: 2050))
   }
   
+  @MainActor func testAlignEnvironmentRenderingHasNoTopPadding() throws {
+    let image = try XCTUnwrap(LaTeX.renderToImages(
+      "\\begin{align}a &= b \\\\ c &= d\\end{align}",
+      xHeight: 10,
+      displayScale: 2).first)
+
+    try assertSmallTopPadding(in: image)
+  }
+
+  @MainActor func testGatherEnvironmentRenderingHasNoTopPadding() throws {
+    let image = try XCTUnwrap(LaTeX.renderToImages(
+      "\\begin{gather}a = b \\\\ c = d\\end{gather}",
+      xHeight: 10,
+      displayScale: 2).first)
+
+    try assertSmallTopPadding(in: image)
+  }
+
+  private func assertSmallTopPadding(in image: _Image, file: StaticString = #filePath, line: UInt = #line) throws {
+    let bounds = try XCTUnwrap(visiblePixelRowBounds(in: image), file: file, line: line)
+    XCTAssertLessThanOrEqual(
+      Double(bounds.firstVisibleRow),
+      Double(bounds.height) * 0.05,
+      "equation should start near the top of its image",
+      file: file,
+      line: line)
+  }
+
+}
+
+private func visiblePixelRowBounds(in image: _Image) -> (firstVisibleRow: Int, height: Int)? {
+  #if os(iOS) || os(visionOS)
+  guard let cgImage = image.cgImage else { return nil }
+  #else
+  var proposedRect = CGRect(origin: .zero, size: image.size)
+  guard let cgImage = image.cgImage(forProposedRect: &proposedRect, context: nil, hints: nil) else {
+    return nil
+  }
+  #endif
+
+  let width = cgImage.width
+  let height = cgImage.height
+  let bytesPerPixel = 4
+  let bytesPerRow = width * bytesPerPixel
+
+  guard let context = CGContext(
+    data: nil,
+    width: width,
+    height: height,
+    bitsPerComponent: 8,
+    bytesPerRow: bytesPerRow,
+    space: CGColorSpaceCreateDeviceRGB(),
+    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+  ) else {
+    return nil
+  }
+
+  context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+  guard let data = context.data else { return nil }
+  let bitmap = data.assumingMemoryBound(to: UInt8.self)
+
+  for y in 0 ..< height {
+    let rowStart = y * bytesPerRow
+    for x in 0 ..< width {
+      if bitmap[rowStart + x * bytesPerPixel + 3] > 0 {
+        return (firstVisibleRow: y, height: height)
+      }
+    }
+  }
+
+  return nil
 }

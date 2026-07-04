@@ -26,7 +26,7 @@ import SwiftUI
 
 internal extension Image {
   
-  init(image: _Image, scale: CGFloat = 1.0) {
+  init(image: _Image) {
 #if os(iOS) || os(visionOS)
     self.init(uiImage: image)
 #else
