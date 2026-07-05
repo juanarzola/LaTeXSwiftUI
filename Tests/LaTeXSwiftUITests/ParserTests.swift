@@ -403,6 +403,33 @@ final class ParserTests: XCTestCase {
     XCTAssertFalse(patchedString.contains("data-background"), "Should not have error background")
   }
 
+  func testBracedNumericScriptsRenderInGather() throws {
+    let mathjax = try MathJax(preferredOutputFormat: .svg)
+    let texOptions = TeXInputProcessorOptions(processEscapes: false, errorMode: .original)
+    let input = """
+\\begin{gather}
+a_{2} \\\\
+a^{2} \\\\
+\\log_{2}(8)
+\\end{gather}
+"""
+    let components = Parser.parse("$$\(input)$$")
+
+    XCTAssertEqual(components.count, 1)
+    assertComponent(components, 0, input, .texEquation)
+
+    var error: Error?
+    let svgString = mathjax.tex2svg(
+      components[0].text,
+      styles: false,
+      conversionOptions: components[0].conversionOptions,
+      inputOptions: texOptions,
+      error: &error)
+
+    XCTAssertNil(error)
+    XCTAssertFalse(svgString.contains("data-background"), "Should not render MathJax error output")
+  }
+
   func testUnmatchedBlockDelimiter() {
     let input = "Text with \\[ unmatched block"
     let components = Parser.parse(input)

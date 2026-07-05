@@ -48,6 +48,7 @@ extension TeXInputProcessorOptions {
       }
     }
     loadPackages = packages
+    digits = #"^(?:[0-9]+(?:{,}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)"#
     
     // The default inlineMath for MathJax is set to [["\\(", "\\)"]] which isn't
     // useful for this package since we'd rather use dollar signs and reserve
