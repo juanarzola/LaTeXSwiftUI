@@ -35,7 +35,8 @@ internal enum Parser {
   ///   - mode: The rendering mode.
   /// - Returns: An array of component blocks.
   static func parse(_ text: String, mode: LaTeX.ParsingMode) -> [ComponentBlock] {
-    let components = mode == .all ? allModeComponents(text) : parse(text)
+//    let components = mode == .all ? allModeComponents(text) : parse(text)
+    let components = mode == .all ? [Component(text: text, type: .inlineEquation)] : parse(text)
     var blocks = [ComponentBlock]()
     var blockComponents = [Component]()
     for component in components {
